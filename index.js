@@ -1,105 +1,89 @@
-let post1 = {
-  id: 1,
-  author: "John",
-  content: "My first Post!",
-  likes: 10,
-  comments: ["Great post!", "Nice photo!"],
-  image: "https://files.codingninjas.in/image2-28694.jpg",
-};
+const sentences = 
+  `The quick brown fox jumps over the lazy dog . Sphinx of black quartz, judge my vow . Pack my box with five dozen liquor jugs . How vexingly quick daft zebras jump !`
+;
 
-const likedPosts = new Set();
+let currentSentenceIndex = 0;
+let startTime, endTime;
+let timerInterval;
 
-function renderPosts() {
-  const postsContainer = document.getElementById("posts");
-  postsContainer.innerHTML = "";
+const sentenceElement = document.getElementById("sentence");
+const inputElement = document.getElementById("input");
+const startButton = document.getElementById("start-btn");
+const timerElement = document.getElementById("timer");
+const speedElement = document.getElementById("speed");
+const accuracyElement = document.getElementById("accuracy");
+const resultElement = document.getElementById("result");
+const retryButton = document.getElementById("retry-btn");
 
-  const postElement = document.createElement("div");
-  postElement.classList.add("post");
 
-  const authorElement = document.createElement("h3");
-  authorElement.textContent = post1.author;
+function startTest() {
+  sentenceElement.innerHTML = sentences;
+  inputElement.value = "";
+  inputElement.disabled = false;
+  inputElement.focus();
+  startButton.disabled = true;
+  startTime = new Date();
+  timerInterval = setInterval(updateTimer, 1000);
+  setTimeout(endTest, 30000); // End the test after 30 seconds
+}
 
-  const contentElement = document.createElement("p");
-  contentElement.textContent = post1.content;
 
-  const imageElement = document.createElement("img");
-  imageElement.src = post1.image;
-  imageElement.alt = "Post Image";
 
-  const likeButton = document.createElement("button");
-  likeButton.textContent = `Like`;
-  likeButton.classList.add("like-button");
-  likeButton.addEventListener("click", () => {
-    if (!likedPosts.has(post1.id)) {
-      likePost();
-      likedPosts.add(post1.id);
-      likeButton.disabled = true; // Disable the button after clicking
+
+function updateTimer() {
+  const currentTime = new Date();
+  const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+  const remainingTime = 30 - elapsedTime;
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
+  timerElement.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+
+
+
+function endTest() {
+  clearInterval(timerInterval);
+  endTime = new Date();
+  const elapsedTime = Math.floor((endTime - startTime) / 1000);
+  const typedSentence = inputElement.value.trim();
+  const correctSentence = sentenceElement.textContent.trim();
+  
+  let speed = 0;
+  let typedWords = [];
+  if(typedSentence != ""){
+    typedWords = typedSentence.split(" ");
+  }
+  
+  const correctWords = correctSentence.split(" ");
+  console.log(correctWords);
+  let correctCount = 0;
+  let ind =0;
+  typedWords.forEach((word, index) => {
+    if (word === correctWords[index]) {
+      correctCount++;
+      ind =index;
     }
   });
-
-  const commentInput = document.createElement("input");
-  commentInput.type = "text";
-  commentInput.placeholder = "Write a comment...";
-
-  const commentButton = document.createElement("button");
-  commentButton.textContent = "Comment";
-  commentButton.classList.add("comment-button");
-  commentButton.addEventListener(
-    "click",
-    () => {
-      addComment(commentInput.value);
-      commentInput.value = "";
-    },
-    { once: true }
-  );
-
-  const postFooter = document.createElement("div");
-  postFooter.classList.add("post-footer");
-  postFooter.textContent = `Likes: ${post1.likes}   Comments: ${post1.comments.length}`;
-
-  const commentsContainer = document.createElement("div");
-  commentsContainer.classList.add("comments-container");
-  commentsContainer.style.display = "none";
-
-  post1.comments.forEach((comment) => {
-    const commentElement = document.createElement("p");
-    commentElement.textContent = comment;
-    commentsContainer.appendChild(commentElement);
-  });
-
-  postElement.appendChild(authorElement);
-
-  postElement.appendChild(imageElement);
-  postElement.appendChild(contentElement);
-  postElement.appendChild(likeButton);
-  postElement.appendChild(commentInput);
-  postElement.appendChild(commentButton);
-  postElement.appendChild(postFooter);
-  postElement.appendChild(commentsContainer);
-
-  postFooter.addEventListener("click", () => {
-    if (commentsContainer.style.display === "none") {
-      commentsContainer.style.display = "block";
-    } else {
-      commentsContainer.style.display = "none";
-    }
-  });
-
-  postsContainer.appendChild(postElement);
+  if(typedSentence != ""){
+    speed = Math.floor(((correctCount) / 30) * 60);
+  }
+  const accuracy = (correctCount / correctWords.length  ) * 100;
+  speedElement.textContent = speed;
+  accuracyElement.textContent = accuracy.toFixed(2);
+  resultElement.style.display = "block";
+  retryButton.focus();
 }
 
-// Function to handle post liking
-function likePost() {
-  post1.likes++;
-  renderPosts();
-  const button = document.querySelector(".like-button");
-  button.style.backgroundColor = "red";
-}
 
-// Function to handle adding a comment
-function addComment(comment) {
-  post1.comments.push(comment);
-  renderPosts();
-}
 
-renderPosts();
+
+startButton.addEventListener("click", startTest);
+
+
+
+retryButton.addEventListener("click", () => {
+  resultElement.style.display = "none";
+  startButton.disabled = false;
+  inputElement.value = "";
+});
